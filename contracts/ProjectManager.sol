@@ -2,36 +2,25 @@
 pragma solidity ^0.8.0;
 
 import "./Project.sol";
+import "./RoleManager.sol";
 
 contract ProjectManager {
-    address public admin;
-    mapping(address => bool) public approvers;
+
+    RoleManager public roleManager; 
     mapping(address => bool) public registeredProjects;
 
     event ProjectRegistered(address indexed projectAddress, string name, string description, address creator);
     event ProjectStateUpdated(address indexed projectAddress, Project.ProjectState newState);
 
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "Only the admin can execute this function.");
-        _;
-    }
 
     modifier onlyApprover() {
-        require(approvers[msg.sender], "Only an approver can execute this function.");
+        require(roleManager.isStaffOrAdmin(msg.sender), "No tenes permiso");
         _;
     }
-
-    constructor() {
-        admin = msg.sender;
+    constructor(address _roleManagerAddress) {
+        roleManager = RoleManager(_roleManagerAddress);
     }
 
-    function addApprover(address _approver) public onlyAdmin {
-        approvers[_approver] = true;
-    }
-
-    function removeApprover(address _approver) public onlyAdmin {
-        approvers[_approver] = false;
-    }
 
     // El creator registra el proyecto
     function registerProject(
