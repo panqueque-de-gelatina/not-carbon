@@ -2,12 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "./Project.sol";
+import "./CarbonCreditToken.sol";
 
 contract ProjectManager {
     address public admin;
     mapping(address => bool) public approvers;
     mapping(address => bool) public registeredProjects;
-
+    uint256 pricePerToken;
     event ProjectRegistered(address indexed projectAddress, string name, string description, address creator);
     event ProjectStateUpdated(address indexed projectAddress, Project.ProjectState newState);
 
@@ -33,7 +34,6 @@ contract ProjectManager {
         approvers[_approver] = false;
     }
 
-    // El creator registra el proyecto
     function registerProject(
         string memory _name,
         string memory _description,
@@ -45,13 +45,19 @@ contract ProjectManager {
             _description,
             _carbonCreditTokenAddress,
             _totalTokens,
-            msg.sender 
+            msg.sender ,
+            pricePerToken
         );
         address projectAddress = address(newProject);
         registeredProjects[projectAddress] = true;
+
+        CarbonCreditToken token = CarbonCreditToken(_carbonCreditTokenAddress);
+        token.transferTokens(projectAddress, _totalTokens);
+
         emit ProjectRegistered(projectAddress, _name, _description, msg.sender);
         return projectAddress;
     }
+
 
     function updateProjectStatus(address _projectAddress, Project.ProjectState _newState) public onlyApprover {
         require(registeredProjects[_projectAddress], "Project is not registered.");
@@ -62,5 +68,9 @@ contract ProjectManager {
 
     function isProjectRegistered(address _projectAddress) public view returns (bool) {
         return registeredProjects[_projectAddress];
+    }
+
+    function setPricePerToken(uint256 _price) public onlyAdmin {
+        pricePerToken = _price;
     }
 }
