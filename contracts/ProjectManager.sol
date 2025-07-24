@@ -18,6 +18,11 @@ contract ProjectManager {
         _;
     }
 
+    modifier onlyApprover() {
+        require(roleManager.isStaffOrAdmin(msg.sender), "Only staff or admin can execute this function.");
+        _;
+    }
+
     constructor(address _roleManager) {
         admin = msg.sender;
         roleManager = IRoleManager(_roleManager);
@@ -48,8 +53,7 @@ contract ProjectManager {
     }
 
 
-    function updateProjectStatus(address _projectAddress, Project.ProjectState _newState) public {
-        require(roleManager.isStaffOrAdmin(msg.sender), "Only staff or admin can update project status.");
+    function updateProjectStatus(address _projectAddress, Project.ProjectState _newState) public onlyApprover {
         require(registeredProjects[_projectAddress], "Project is not registered.");
         Project project = Project(_projectAddress);
         project.updateState(_newState);
@@ -60,8 +64,7 @@ contract ProjectManager {
         return registeredProjects[_projectAddress];
     }
 
-    function setPricePerToken(uint256 _price) public {
-        require(roleManager.isStaffOrAdmin(msg.sender), "Only staff or admin can set the price per token.");
+    function setPricePerToken(uint256 _price) public onlyApprover {
         pricePerToken = _price;
     }
 }

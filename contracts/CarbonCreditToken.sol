@@ -16,6 +16,10 @@ contract CarbonCreditToken is ERC20 {
         _;
     }
 
+    modifier onlyApprover() {
+        require(roleManager.isStaffOrAdmin(msg.sender), "Only staff or admin can execute this function.");
+        _;
+    }
     constructor(address _projectManager, address _roleManager) ERC20("CarbonCreditToken", "CCT") {
         admin = msg.sender; 
         projectManager = _projectManager;
@@ -23,8 +27,7 @@ contract CarbonCreditToken is ERC20 {
     }
 
     // Función para minar (crear) nuevos tokens y asignarlos al contrato
-    function mint(uint256 amount) public {
-        require(roleManager.isStaffOrAdmin(msg.sender), "Only staff or admin can mint tokens.");
+    function mint(uint256 amount) public onlyApprover {
         _mint(address(this), amount); 
         emit TokensMinted(address(this), amount);
     }
