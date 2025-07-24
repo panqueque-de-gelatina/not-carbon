@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-
+import "./interfaces/ICompanyRegistry.sol";
 interface ICarbonCreditToken {
-    function transfer(address recipient, uint256 amount) external returns (bool);
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function transfer(
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
     function balanceOf(address account) external view returns (uint256);
 }
 
@@ -12,27 +19,41 @@ contract Project {
     address public creator;
     string public projectName;
     string public projectDescription;
-    
-    enum ProjectState { Phase0, Phase1, Phase2, Phase3, Phase4 }
+
+    enum ProjectState {
+        Phase0,
+        Phase1,
+        Phase2,
+        Phase3,
+        Phase4
+    }
     ProjectState public currentState;
-    
+
     address public carbonCreditTokenAddress;
-    uint256 public totalTokens; 
-    uint256 public releasedTokens; 
-    uint256 public pricePerToken; 
-    
+    uint256 public totalTokens;
+    uint256 public releasedTokens;
+    uint256 public pricePerToken;
+    ICompanyRegistry public companyRegistry;
+    ICarbonCreditToken public token;
+
     event Deposit(address indexed from, uint256 amount);
     event StateChanged(ProjectState newState);
     event TokensPurchased(address indexed buyer, uint256 amount);
     event ETHWithdrawn(address indexed to, uint256 amount);
 
     modifier onlyProjectManager() {
-        require(msg.sender == projectManager, "Only the project manager can execute this function.");
+        require(
+            msg.sender == projectManager,
+            "Only the project manager can execute this function."
+        );
         _;
     }
 
     modifier onlyCreator() {
-        require(msg.sender == creator, "Only the project creator can execute this function.");
+        require(
+            msg.sender == creator,
+            "Only the project creator can execute this function."
+        );
         _;
     }
 
@@ -42,17 +63,20 @@ contract Project {
         address _carbonCreditTokenAddress,
         uint256 _totalTokens,
         address _creator,
-        uint256 _pricePerToken 
+        uint256 _pricePerToken,
+        ICompanyRegistry _companyRegistry
     ) {
         projectManager = msg.sender;
         projectName = _name;
         projectDescription = _description;
         currentState = ProjectState.Phase0;
         carbonCreditTokenAddress = _carbonCreditTokenAddress;
+        token = ICarbonCreditToken(_carbonCreditTokenAddress);
         totalTokens = _totalTokens;
-        releasedTokens = 0; 
+        releasedTokens = 0;
         creator = _creator;
-        pricePerToken = _pricePerToken; 
+        pricePerToken = _pricePerToken;
+        companyRegistry = _companyRegistry;
     }
 
     // Función para actualizar el precio por token (solo el project manager puede llamarla)
@@ -62,19 +86,21 @@ contract Project {
 
     // Función para actualizar el estado del proyecto
     function updateState(ProjectState _newState) external onlyProjectManager {
-        require(uint(_newState) > uint(currentState), "New state must be a higher phase.");
+        require(
+            uint(_newState) > uint(currentState),
+            "New state must be a higher phase."
+        );
         currentState = _newState;
         emit StateChanged(_newState);
     }
 
-    function getCreator() public view returns(address) {
-        return creator; 
+    function getCreator() public view returns (address) {
+        return creator;
     }
 
     function deposit() external payable {
         emit Deposit(msg.sender, msg.value);
     }
-
 
     function getBalance() public view returns (uint256) {
         return address(this).balance;
@@ -83,37 +109,41 @@ contract Project {
     function getReleasedTokens() public view returns (uint256) {
         if (currentState == ProjectState.Phase0) {
             return 0;
-        }
-        else if (currentState == ProjectState.Phase1) {
-            return (totalTokens * 10) / 100; 
+        } else if (currentState == ProjectState.Phase1) {
+            return (totalTokens * 10) / 100;
         } else if (currentState == ProjectState.Phase2) {
             return (totalTokens * 40) / 100;
         } else if (currentState == ProjectState.Phase3) {
-            return (totalTokens * 60) / 100; 
+            return (totalTokens * 60) / 100;
         } else if (currentState == ProjectState.Phase4) {
-            return totalTokens; 
+            return totalTokens;
         }
         return 0;
     }
 
     // Función para comprar tokens con ETH
     function buyCarbonCredits(uint256 _amount) external payable {
-        ICarbonCreditToken token = ICarbonCreditToken(carbonCreditTokenAddress);
-        
+
         // Verificar que el usuario haya enviado suficiente ETH
         uint256 totalCost = _amount * pricePerToken;
         require(msg.value >= totalCost, "Insufficient ETH sent");
 
         // Verificar que hay suficientes tokens liberados
         uint256 availableTokens = getReleasedTokens() - releasedTokens;
-        require(_amount <= availableTokens, "Amount exceeds available tokens for this phase");
-        
+        require(
+            _amount <= availableTokens,
+            "Amount exceeds available tokens for this phase"
+        );
+
         // Verificar que el contrato tiene suficientes tokens
-        require(token.balanceOf(address(this)) >= _amount, "Insufficient token balance");
-        
+        require(
+            token.balanceOf(address(this)) >= _amount,
+            "Insufficient token balance"
+        );
+
         // Transferir tokens al usuario
         require(token.transfer(msg.sender, _amount), "Token transfer failed");
-        
+
         // Actualizar la cantidad de tokens liberados
         releasedTokens += _amount;
 
@@ -125,5 +155,21 @@ contract Project {
         require(address(this).balance >= _amount, "Insufficient ETH balance");
         payable(creator).transfer(_amount);
         emit ETHWithdrawn(creator, _amount);
+    }
+
+    function buyFor(address buyer, uint256 amount) external payable {
+        require(companyRegistry.isApproved(buyer), "Company not approved");
+        uint256 totalCost = amount * pricePerToken;
+        require(msg.value >= totalCost, "Insufficient ETH");
+
+        require(
+            getReleasedTokens() - releasedTokens >= amount,
+            "Not enough tokens released"
+        );
+        require(token.balanceOf(address(this)) >= amount, "Insufficient balance");
+
+        require(token.transfer(buyer, amount), "Transfer failed");
+        releasedTokens += amount;
+        emit TokensPurchased(buyer, amount);
     }
 }
