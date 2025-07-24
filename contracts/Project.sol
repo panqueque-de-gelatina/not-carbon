@@ -31,7 +31,7 @@ contract Project {
 
     address public carbonCreditTokenAddress;
     uint256 public totalTokens;
-    uint256 public releasedTokens;
+    uint256 public purchasedTokens;
     uint256 public pricePerToken;
     ICompanyManager public companyManager;
     ICarbonCreditToken public token;
@@ -73,7 +73,7 @@ contract Project {
         carbonCreditTokenAddress = _carbonCreditTokenAddress;
         token = ICarbonCreditToken(_carbonCreditTokenAddress);
         totalTokens = _totalTokens;
-        releasedTokens = 0;
+        purchasedTokens = 0;
         creator = _creator;
         pricePerToken = _pricePerToken;
         companyManager = _companyManager;
@@ -129,9 +129,8 @@ contract Project {
         require(msg.value >= totalCost, "Insufficient ETH sent");
 
         // Verificar que hay suficientes tokens liberados
-        uint256 availableTokens = getReleasedTokens() - releasedTokens;
         require(
-            _amount <= availableTokens,
+            _amount <= getAvailableTokens(),
             "Amount exceeds available tokens for this phase"
         );
 
@@ -144,8 +143,8 @@ contract Project {
         // Transferir tokens al usuario
         require(token.transfer(msg.sender, _amount), "Token transfer failed");
 
-        // Actualizar la cantidad de tokens liberados
-        releasedTokens += _amount;
+        // Actualizar la cantidad de tokens comprados
+        purchasedTokens += _amount;
 
         emit TokensPurchased(msg.sender, _amount);
     }
@@ -163,13 +162,17 @@ contract Project {
         require(msg.value >= totalCost, "Insufficient ETH");
 
         require(
-            getReleasedTokens() - releasedTokens >= amount,
+            getReleasedTokens() - purchasedTokens >= amount,
             "Not enough tokens released"
         );
         require(token.balanceOf(address(this)) >= amount, "Insufficient balance");
 
         require(token.transfer(buyer, amount), "Transfer failed");
-        releasedTokens += amount;
+        purchasedTokens += amount;
         emit TokensPurchased(buyer, amount);
+    }
+
+    function getAvailableTokens() public view returns (uint256) {
+        return getReleasedTokens() - purchasedTokens;
     }
 }

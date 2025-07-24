@@ -24,7 +24,8 @@ contract CarbonCreditMarket {
 
         for (uint i = 0; i < projects.length && remaining > 0; i++) {
             IProject p = IProject(projects[i]);
-            uint256 available = p.getReleasedTokens() - p.releasedTokens();
+
+            uint256 available = p.getAvailableTokens();
 
             if (available > 0) {
                 uint256 toBuy = available >= remaining ? remaining : available;

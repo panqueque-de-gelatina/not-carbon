@@ -23,4 +23,6 @@ interface IProject {
     function projectName() external view returns (string memory);
     
     function projectDescription() external view returns (string memory);
+
+    function getAvailableTokens() external view returns (uint256);
 }
