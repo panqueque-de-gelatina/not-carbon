@@ -8,7 +8,7 @@ interface ICarbonCreditToken {
 }
 
 contract Project {
-    address public owner;
+    address public projectManager;
     address public creator;
     string public projectName;
     string public projectDescription;
@@ -26,13 +26,13 @@ contract Project {
     event TokensPurchased(address indexed buyer, uint256 amount);
     event ETHWithdrawn(address indexed to, uint256 amount);
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only the owner can execute this function.");
+    modifier onlyProjectManager() {
+        require(msg.sender == projectManager, "Only the project manager can execute this function.");
         _;
     }
 
     modifier onlyCreator() {
-        require(msg.sender == creator, "Only the creator can execute this function.");
+        require(msg.sender == creator, "Only the project creator can execute this function.");
         _;
     }
 
@@ -44,7 +44,7 @@ contract Project {
         address _creator,
         uint256 _pricePerToken 
     ) {
-        owner = msg.sender;
+        projectManager = msg.sender;
         projectName = _name;
         projectDescription = _description;
         currentState = ProjectState.Phase0;
@@ -55,13 +55,13 @@ contract Project {
         pricePerToken = _pricePerToken; 
     }
 
-    // Función para actualizar el precio por token (solo el owner puede llamarla)
-    function setPricePerToken(uint256 _price) public onlyOwner {
+    // Función para actualizar el precio por token (solo el project manager puede llamarla)
+    function setPricePerToken(uint256 _price) public onlyProjectManager {
         pricePerToken = _price;
     }
 
     // Función para actualizar el estado del proyecto
-    function updateState(ProjectState _newState) external onlyOwner {
+    function updateState(ProjectState _newState) external onlyProjectManager {
         require(uint(_newState) > uint(currentState), "New state must be a higher phase.");
         currentState = _newState;
         emit StateChanged(_newState);
