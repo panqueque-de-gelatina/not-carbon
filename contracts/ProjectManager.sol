@@ -3,12 +3,13 @@ pragma solidity ^0.8.0;
 
 import "./Project.sol";
 import "./CarbonCreditToken.sol";
-
+import "./interfaces/IRoleManager.sol";
 contract ProjectManager {
     address public admin;
     mapping(address => bool) public approvers;
     mapping(address => bool) public registeredProjects;
     uint256 pricePerToken;
+    IRoleManager public roleManager;
     event ProjectRegistered(address indexed projectAddress, string name, string description, address creator);
     event ProjectStateUpdated(address indexed projectAddress, Project.ProjectState newState);
 
@@ -17,21 +18,9 @@ contract ProjectManager {
         _;
     }
 
-    modifier onlyApprover() {
-        require(approvers[msg.sender], "Only an approver can execute this function.");
-        _;
-    }
-
-    constructor() {
+    constructor(address _roleManager) {
         admin = msg.sender;
-    }
-
-    function addApprover(address _approver) public onlyAdmin {
-        approvers[_approver] = true;
-    }
-
-    function removeApprover(address _approver) public onlyAdmin {
-        approvers[_approver] = false;
+        roleManager = IRoleManager(_roleManager);
     }
 
     function registerProject(
@@ -59,7 +48,8 @@ contract ProjectManager {
     }
 
 
-    function updateProjectStatus(address _projectAddress, Project.ProjectState _newState) public onlyApprover {
+    function updateProjectStatus(address _projectAddress, Project.ProjectState _newState) public {
+        require(roleManager.isStaffOrAdmin(msg.sender), "Only staff or admin can update project status.");
         require(registeredProjects[_projectAddress], "Project is not registered.");
         Project project = Project(_projectAddress);
         project.updateState(_newState);
@@ -70,7 +60,8 @@ contract ProjectManager {
         return registeredProjects[_projectAddress];
     }
 
-    function setPricePerToken(uint256 _price) public onlyAdmin {
+    function setPricePerToken(uint256 _price) public {
+        require(roleManager.isStaffOrAdmin(msg.sender), "Only staff or admin can set the price per token.");
         pricePerToken = _price;
     }
 }
