@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./Project.sol";
 import "./CarbonCreditToken.sol";
 import "./interfaces/IRoleManager.sol";
-import "./interfaces/ICompanyRegistry.sol";
+import "./interfaces/ICompanyManager.sol";
 contract ProjectManager {
     address public admin;
     mapping(address => bool) public approvers;
@@ -12,7 +12,7 @@ contract ProjectManager {
     address[] public projectList; // <- nuevo array
     uint256 pricePerToken;
     IRoleManager public roleManager;
-    ICompanyRegistry public companyRegistry;
+    ICompanyManager public companyManager;
 
     event ProjectRegistered(address indexed projectAddress, string name, string description, address creator);
     event ProjectStateUpdated(address indexed projectAddress, Project.ProjectState newState);
@@ -30,7 +30,7 @@ contract ProjectManager {
     constructor(address _roleManager) {
         admin = msg.sender;
         roleManager = IRoleManager(_roleManager);
-        companyRegistry = ICompanyRegistry(_roleManager);
+        companyManager = ICompanyManager(_roleManager);
     }
 
     function registerProject(
@@ -46,7 +46,7 @@ contract ProjectManager {
             _totalTokens,
             msg.sender,
             pricePerToken,
-            companyRegistry
+            companyManager
         );
         address projectAddress = address(newProject);
         registeredProjects[projectAddress] = true;

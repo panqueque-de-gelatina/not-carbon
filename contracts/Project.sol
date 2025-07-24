@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "./interfaces/ICompanyRegistry.sol";
+import "./interfaces/ICompanyManager.sol";
 interface ICarbonCreditToken {
     function transfer(
         address recipient,
@@ -33,7 +33,7 @@ contract Project {
     uint256 public totalTokens;
     uint256 public releasedTokens;
     uint256 public pricePerToken;
-    ICompanyRegistry public companyRegistry;
+    ICompanyManager public companyManager;
     ICarbonCreditToken public token;
 
     event Deposit(address indexed from, uint256 amount);
@@ -64,7 +64,7 @@ contract Project {
         uint256 _totalTokens,
         address _creator,
         uint256 _pricePerToken,
-        ICompanyRegistry _companyRegistry
+        ICompanyManager _companyManager
     ) {
         projectManager = msg.sender;
         projectName = _name;
@@ -76,7 +76,7 @@ contract Project {
         releasedTokens = 0;
         creator = _creator;
         pricePerToken = _pricePerToken;
-        companyRegistry = _companyRegistry;
+        companyManager = _companyManager;
     }
 
     // Función para actualizar el precio por token (solo el project manager puede llamarla)
@@ -158,7 +158,7 @@ contract Project {
     }
 
     function buyFor(address buyer, uint256 amount) external payable {
-        require(companyRegistry.isApproved(buyer), "Company not approved");
+        require(companyManager.isApproved(buyer), "Company not approved");
         uint256 totalCost = amount * pricePerToken;
         require(msg.value >= totalCost, "Insufficient ETH");
 
