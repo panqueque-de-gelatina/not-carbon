@@ -69,8 +69,5 @@ contract CarbonCreditMarket {
         }
         
         emit BuyFromAnyCompleted(totalSpent, refund);
-        if (msg.value > totalSpent) {
-            buyer.transfer(msg.value - totalSpent);
-        }
     }
 }
