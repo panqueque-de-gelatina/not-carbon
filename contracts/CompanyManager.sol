@@ -22,12 +22,12 @@ contract CompanyManager {
     }
 
     function createCompany(string memory _name, uint256 _monthlyEmissions) public returns (address) {
-        Company company = new Company(msg.sender, _name, _monthlyEmissions);
+        Company company = new Company(msg.sender, _name, _monthlyEmissions, address(this));
         address contractAddr = address(company);
 
         registeredCompanies[contractAddr] = true;
         companyList.push(contractAddr);
-        
+
         emit CompanyCreated(msg.sender, contractAddr, _name);
         return contractAddr;
     }
