@@ -13,6 +13,8 @@ contract Company {
     bool public approved;
 
     event CarbonCreditsPurchased(address indexed market, uint256 amount);
+    event DebugCompany(string message, uint256 value);
+    event DebugCompany(string message, address addr);
 
     constructor(address _owner, string memory _name, uint256 _monthlyEmissions, address _companyManager) {
         owner = _owner;
@@ -40,9 +42,16 @@ contract Company {
     }
 
     function buyFromMarket(address market, uint256 amount) external payable onlyOwner {
+        emit DebugCompany("buyFromMarket started", amount);
+        emit DebugCompany("Market address", market);
+        emit DebugCompany("ETH sent", msg.value);
+        
         ICarbonCreditMarket(market).buyFromAny{value: msg.value}(amount, payable(address(this)));
+        emit DebugCompany("buyFromAny completed", 0);
+        
         carbonCredits += amount;
         emit CarbonCreditsPurchased(market, amount);
+        emit DebugCompany("buyFromMarket completed", carbonCredits);
     }
 
     function approve() external onlyCompanyManager {
