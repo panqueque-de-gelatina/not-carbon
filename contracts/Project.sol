@@ -156,7 +156,7 @@ contract Project {
         emit ETHWithdrawn(creator, _amount);
     }
 
-    function buyFor(address buyer, uint256 amount) external payable {
+    function buyFor(address payable buyer, uint256 amount) external payable {
         require(companyManager.isApproved(buyer), "Company not approved");
         uint256 totalCost = amount * pricePerToken;
         require(msg.value >= totalCost, "Insufficient ETH");
@@ -170,6 +170,10 @@ contract Project {
         require(token.transfer(buyer, amount), "Transfer failed");
         purchasedTokens += amount;
         emit TokensPurchased(buyer, amount);
+        
+        if (msg.value > totalCost) {
+            buyer.transfer(msg.value - totalCost);
+        }
     }
 
     function getAvailableTokens() public view returns (uint256) {
