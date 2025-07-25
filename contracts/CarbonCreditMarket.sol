@@ -40,9 +40,5 @@ contract CarbonCreditMarket {
             }
         }
         require(remaining == 0, "Could not complete purchase with available projects");
-
-        if (msg.value > totalSpent) {
-            payable(buyer).transfer(msg.value - totalSpent);
-        }
     }
 }
