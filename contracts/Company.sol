@@ -40,7 +40,7 @@ contract Company {
     }
 
     function buyFromMarket(address market, uint256 amount) external payable onlyOwner {
-        ICarbonCreditMarket(market).buyFromAny{value: msg.value}(amount, payable(address(this)));
+        ICarbonCreditMarket(market).buyFromAny{value: msg.value}(amount, payable(msg.sender));
         carbonCredits += amount;
         emit CarbonCreditsPurchased(market, amount);
     }
