@@ -6,20 +6,27 @@ import "./interfaces/IProject.sol";
 import "./interfaces/ICarbonCreditMarket.sol";
 contract Company {
     address public owner;
+    address public companyManager;
     string public name;
     uint256 public monthlyEmissions;
     uint256 public carbonCredits;
     bool public approved;
 
-    constructor(address _owner, string memory _name, uint256 _monthlyEmissions) {
+    constructor(address _owner, string memory _name, uint256 _monthlyEmissions, address _companyManager) {
         owner = _owner;
         name = _name;
         monthlyEmissions = _monthlyEmissions;
         carbonCredits = 0;
+        companyManager = _companyManager;
     }
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not the owner");
+        _;
+    }
+
+    modifier onlyCompanyManager() {
+        require(msg.sender == companyManager, "Not the company manager");
         _;
     }
 
@@ -32,7 +39,7 @@ contract Company {
         ICarbonCreditMarket(market).buyFromAny{value: msg.value}(amount);
     }
 
-    function approve() external onlyOwner {
+    function approve() external onlyCompanyManager {
         approved = true;
     }
 
