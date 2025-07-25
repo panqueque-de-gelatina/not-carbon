@@ -9,7 +9,7 @@ contract ProjectManager {
     address public admin;
     mapping(address => bool) public approvers;
     mapping(address => bool) public registeredProjects;
-    address[] public projectList; // <- nuevo array
+    address[] public projectList;
     uint256 pricePerToken;
     IRoleManager public roleManager;
     ICompanyManager public companyManager;

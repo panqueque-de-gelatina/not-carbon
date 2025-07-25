@@ -9,6 +9,7 @@ contract Company {
     string public name;
     uint256 public monthlyEmissions;
     uint256 public carbonCredits;
+    bool public approved;
 
     constructor(address _owner, string memory _name, uint256 _monthlyEmissions) {
         owner = _owner;
@@ -31,5 +32,11 @@ contract Company {
         ICarbonCreditMarket(market).buyFromAny{value: msg.value}(amount);
     }
 
-    receive() external payable {}
+    function approve() external onlyOwner {
+        approved = true;
+    }
+
+    function isApproved() external view returns (bool) {
+        return approved;
+    }
 }

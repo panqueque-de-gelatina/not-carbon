@@ -9,9 +9,9 @@ contract CarbonCreditMarket {
     ProjectManager public projectManager;
     ICompanyManager public companyManager;
 
-    constructor(address _pm, address _cm) {
-        projectManager = ProjectManager(_pm);
-        companyManager = ICompanyManager(_cm);
+    constructor(address _projectManager, address _companyManager) {
+        projectManager = ProjectManager(_projectManager);
+        companyManager = ICompanyManager(_companyManager);
     }
 
     function buyFromAny(uint256 totalAmount) public payable {

@@ -4,14 +4,8 @@ pragma solidity ^0.8.19;
 import "./interfaces/IRoleManager.sol";
 import "./Company.sol";
 contract CompanyManager {
-    struct CompanyInfo {
-        string name;
-        address contractAddress;
-        uint256 monthlyEmissions;
-        bool approved;
-    }
 
-    mapping(address => CompanyInfo) public companies;
+    mapping(address => bool) public registeredCompanies;
     address[] public companyList;
     IRoleManager public roleManager;
 
@@ -27,38 +21,30 @@ contract CompanyManager {
         roleManager = IRoleManager(_roleManagerAddress);
     }
 
-    function createCompany(string memory _name, uint256 _monthlyEmissions) public {
-        require(companies[msg.sender].contractAddress == address(0), "Empresa ya registrada");
-
+    function createCompany(string memory _name, uint256 _monthlyEmissions) public returns (address) {
         Company company = new Company(msg.sender, _name, _monthlyEmissions);
         address contractAddr = address(company);
 
-        companies[msg.sender] = CompanyInfo({
-            name: _name,
-            contractAddress: contractAddr,
-            monthlyEmissions: _monthlyEmissions,
-            approved: false
-        });
-
+        registeredCompanies[contractAddr] = true;
         companyList.push(contractAddr);
+        
         emit CompanyCreated(msg.sender, contractAddr, _name);
+        return contractAddr;
     }
 
-    function approveCompany(address _owner) public onlyApprover {
-        require(companies[_owner].contractAddress != address(0), "Empresa no registrada");
-        companies[_owner].approved = true;
-        emit CompanyApproved(companies[_owner].contractAddress);
+    function approveCompany(address _companyAddress) public onlyApprover {
+        require(registeredCompanies[_companyAddress], "Empresa no registrada");
+        Company company = Company(_companyAddress);
+        company.approve();
+        emit CompanyApproved(_companyAddress);
     }
 
-    function isApproved(address _owner) external view returns (bool) {
-        return companies[_owner].approved;
+    function isApproved(address _companyAddress) external view returns (bool) {
+        Company company = Company(_companyAddress);
+        return company.isApproved();
     }
 
     function getAllCompanies() public view returns (address[] memory) {
         return companyList;
-    }
-
-    function getCompanyContract(address _owner) public view returns (address) {
-        return companies[_owner].contractAddress;
     }
 }
