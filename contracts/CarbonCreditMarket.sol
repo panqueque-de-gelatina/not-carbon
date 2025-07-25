@@ -40,5 +40,10 @@ contract CarbonCreditMarket {
             }
         }
         require(remaining == 0, "Could not complete purchase with available projects");
+
+        // Devolver ETH sobrante
+        if (msg.value > totalSpent) {
+            buyer.transfer(msg.value - totalSpent);
+        }
     }
 }
