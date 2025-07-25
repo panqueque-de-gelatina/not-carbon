@@ -4,12 +4,16 @@ pragma solidity ^0.8.0;
 import "./Project.sol";
 import "./CarbonCreditToken.sol";
 import "./interfaces/IRoleManager.sol";
+import "./interfaces/ICompanyManager.sol";
 contract ProjectManager {
     address public admin;
     mapping(address => bool) public approvers;
     mapping(address => bool) public registeredProjects;
+    address[] public projectList;
     uint256 pricePerToken;
     IRoleManager public roleManager;
+    ICompanyManager public companyManager;
+
     event ProjectRegistered(address indexed projectAddress, string name, string description, address creator);
     event ProjectStateUpdated(address indexed projectAddress, Project.ProjectState newState);
 
@@ -26,6 +30,7 @@ contract ProjectManager {
     constructor(address _roleManager) {
         admin = msg.sender;
         roleManager = IRoleManager(_roleManager);
+        companyManager = ICompanyManager(_roleManager);
     }
 
     function registerProject(
@@ -39,11 +44,13 @@ contract ProjectManager {
             _description,
             _carbonCreditTokenAddress,
             _totalTokens,
-            msg.sender ,
-            pricePerToken
+            msg.sender,
+            pricePerToken,
+            companyManager
         );
         address projectAddress = address(newProject);
         registeredProjects[projectAddress] = true;
+        projectList.push(projectAddress);
 
         CarbonCreditToken token = CarbonCreditToken(_carbonCreditTokenAddress);
         token.transferTokens(projectAddress, _totalTokens);
@@ -51,7 +58,6 @@ contract ProjectManager {
         emit ProjectRegistered(projectAddress, _name, _description, msg.sender);
         return projectAddress;
     }
-
 
     function updateProjectStatus(address _projectAddress, Project.ProjectState _newState) public onlyApprover {
         require(registeredProjects[_projectAddress], "Project is not registered.");
@@ -66,5 +72,9 @@ contract ProjectManager {
 
     function setPricePerToken(uint256 _price) public onlyApprover {
         pricePerToken = _price;
+    }
+
+    function getAllProjects() public view returns (address[] memory) {
+        return projectList;
     }
 }
