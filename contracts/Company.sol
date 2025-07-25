@@ -45,8 +45,8 @@ contract Company {
         emit DebugCompany("buyFromMarket started", amount);
         emit DebugCompany("Market address", market);
         emit DebugCompany("ETH sent", msg.value);
-        
-        ICarbonCreditMarket(market).buyFromAny{value: msg.value}(amount, payable(address(this)));
+        ICarbonCreditMarket marketContract = ICarbonCreditMarket(market);
+        marketContract.buyFromAny{value: msg.value}(amount, payable(address(this)));
         emit DebugCompany("buyFromAny completed", 0);
         
         carbonCredits += amount;
