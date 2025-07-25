@@ -14,8 +14,8 @@ contract CarbonCreditMarket {
         companyManager = ICompanyManager(_companyManager);
     }
 
-    function buyFromAny(uint256 totalAmount) public payable {
-        require(companyManager.isApproved(msg.sender), "Company not approved");
+    function buyFromAny(uint256 totalAmount, address payable buyer) public payable {
+        require(companyManager.isApproved(buyer), "Company not approved");
 
         uint256 remaining = totalAmount;
         uint256 totalSpent = 0;
@@ -33,7 +33,7 @@ contract CarbonCreditMarket {
 
                 require(msg.value >= totalSpent + cost, "Insufficient ETH");
 
-                p.buyFor{value: cost}(msg.sender, toBuy);
+                p.buyFor{value: cost}(buyer, toBuy);
 
                 remaining -= toBuy;
                 totalSpent += cost;
@@ -42,7 +42,7 @@ contract CarbonCreditMarket {
         require(remaining == 0, "Could not complete purchase with available projects");
 
         if (msg.value > totalSpent) {
-            payable(msg.sender).transfer(msg.value - totalSpent);
+            payable(buyer).transfer(msg.value - totalSpent);
         }
     }
 }
