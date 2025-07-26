@@ -13,7 +13,6 @@ contract RoleManager {
         _;
     }
 
-    //estaría bueno que los otros contracts usen de una este modifyer pero para eso tendrían que heredar de esta clase y me parece medio rari
     modifier onlyStaffOrAdmin() {
         require(msg.sender == admin || staff[msg.sender], "No tenes permisos para realizar esa accion!");
         _;
