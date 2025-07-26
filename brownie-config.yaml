@@ -1,0 +1,15 @@
+# brownie-config.yaml
+dotenv: .env
+compiler:
+  solc:
+    remappings:
+      - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.9.0'
+    version: 0.8.19
+    optimizer:
+      enabled: true
+      runs: 200
+    evm_version: london
+
+dependencies:
+  - OpenZeppelin/openzeppelin-contracts@4.9.0
+

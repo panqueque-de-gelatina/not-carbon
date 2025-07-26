@@ -27,10 +27,10 @@ contract ProjectManager {
         _;
     }
 
-    constructor(address _roleManager) {
+    constructor(address _roleManager, address _companyManager) {
         admin = msg.sender;
         roleManager = IRoleManager(_roleManager);
-        companyManager = ICompanyManager(_roleManager);
+        companyManager = ICompanyManager(_companyManager);
     }
 
     function registerProject(

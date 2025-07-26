@@ -32,14 +32,14 @@ contract CompanyManager {
         return contractAddr;
     }
 
-    function approveCompany(address _companyAddress) public onlyApprover {
+    function approveCompany(address payable _companyAddress) public onlyApprover {
         require(registeredCompanies[_companyAddress], "Empresa no registrada");
         Company company = Company(_companyAddress);
         company.approve();
         emit CompanyApproved(_companyAddress);
     }
 
-    function isApproved(address _companyAddress) external view returns (bool) {
+    function isApproved(address payable _companyAddress) external view returns (bool) {
         Company company = Company(_companyAddress);
         return company.isApproved();
     }

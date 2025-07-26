@@ -40,7 +40,10 @@ contract Company {
     }
 
     function buyFromMarket(address market, uint256 amount) external payable onlyOwner {
-        ICarbonCreditMarket(market).buyFromAny{value: msg.value}(amount, payable(msg.sender));
+
+        ICarbonCreditMarket marketContract = ICarbonCreditMarket(market);
+        marketContract.buyFromAny{value: msg.value}(amount, payable(address(this)));
+
         carbonCredits += amount;
         emit CarbonCreditsPurchased(market, amount);
     }
@@ -52,4 +55,6 @@ contract Company {
     function isApproved() external view returns (bool) {
         return approved;
     }
+
+    receive() external payable {}
 }
