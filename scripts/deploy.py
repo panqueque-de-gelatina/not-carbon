@@ -1,12 +1,17 @@
+import os
+from dotenv import load_dotenv
+
 from brownie import (
     RoleManager,
     CompanyManager, 
-    CarbonCreditToken,
+    CarbonCreditToken,  
+    CarbonCreditMarket,
     ProjectManager,
     Project,
     accounts,
     network
 )
+
 
 def main():
     deployer = accounts.load("admin") 
@@ -30,3 +35,16 @@ def main():
     project = Project.at(projectAddress)
     print(f"Project created at {project.address}")
 
+def deploy_carbon_market():
+    load_dotenv()
+    deployer = accounts.load("admin")
+    companyManager = CompanyManager.at(os.getenv("COMPANY_MANAGER_ADDRESS"))
+    projectManager = ProjectManager.at(os.getenv("PROJECT_MANAGER_ADDRESS"))
+    carbonMarket = CarbonCreditMarket.deploy(
+        projectManager.address,
+        companyManager.address,
+        {'from': deployer}
+    )
+    print(f"Deployed ProjectManager at {projectManager.address}")
+    print(f"Deployed CompanyManager at {companyManager.address}")
+    print(f"Deployed CarbonCreditMarket at {carbonMarket.address}")
